@@ -8,8 +8,8 @@
       </div>
 
       <ProfileCard
-        v-for="(profile, index) in profiles"
-        :key="index"
+        v-for="profile in profiles"
+        :key="profile.id"
         :profile="profile"
         class="profile"
       />
