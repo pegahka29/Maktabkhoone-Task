@@ -1,29 +1,29 @@
 <template>
     <Transition name="fade">
-            <div v-if="show" class="modal-mask">
-                <div class="modal-wrapper">
-                    <div class="modal-container">
-                        <button
+        <div v-if="show" class="modal-mask">
+            <div class="modal-wrapper">
+                <div class="modal-container">
+                    <button
                             class="modal-close-button"
                             @click="$emit('close')"
-                        >❌
-                        </button>
-                        <div class="modal-header">
-                            <slot name="header">default header</slot>
-                        </div>
+                    >❌
+                    </button>
+                    <div class="modal-header">
+                        <slot name="header">default header</slot>
+                    </div>
 
-                        <div class="modal-body">
-                            <slot name="body">default body</slot>
-                        </div>
+                    <div class="modal-body">
+                        <slot name="body">default body</slot>
+                    </div>
 
-                        <div class="modal-footer">
-                            <slot name="footer">
-                                default footer
-                            </slot>
-                        </div>
+                    <div class="modal-footer">
+                        <slot name="footer">
+                            default footer
+                        </slot>
                     </div>
                 </div>
             </div>
+        </div>
     </Transition>
 </template>
 
@@ -33,7 +33,16 @@ export default ({
     name: "Modal",
     props: {
         show: Boolean
-    }
+    },
+    watch: {
+        show(newValue) {
+            if (newValue) {
+                document.body.classList.add('prevent-scroll')
+            } else {
+                document.body.classList.remove('prevent-scroll')
+            }
+        }
+    },
 })
 </script>
 
@@ -87,23 +96,27 @@ export default ({
     justify-content: center;
     align-items: center;
 }
+
 .modal-body input {
     height: 48px;
     width: 30%;
     min-width: 280px;
     max-width: 300px;
 }
+
 .modal-body button {
     height: 48px;
     width: 50%;
     min-width: 100px;
     max-width: 200px;
 }
+
 .modal-close-button {
     background: transparent !important;
     display: flex;
     justify-content: flex-end;
 }
+
 .modal-footer {
     display: flex;
     justify-content: center;
@@ -113,8 +126,13 @@ export default ({
 .fade-enter-active, .fade-leave-active {
     transition: opacity .5s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */
+{
     opacity: 0;
 }
 
+.prevent-scroll, .prevent-scroll #app {
+    overflow: hidden;
+}
 </style>

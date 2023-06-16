@@ -8,10 +8,10 @@
                 <button @click="sortDesc">▼</button>
             </div>
             <ProfileCard
-                    v-for="profile in filteredData"
-                    :key="profile.id"
-                    :profile="profile"
-                    class="profile"
+                v-for="profile in filteredData"
+                :key="profile.id"
+                :profile="profile"
+                class="profile"
             />
             <div class="icons-note">
                 Icons made by
@@ -19,53 +19,88 @@
                 <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
             </div>
             <button @click.prevent="showModal" class="show-modal__button">Add new profile</button>
-            <Modal :show="showAddProfileModal" @close="hideAddProfileModal">
+            <system-modal :show="showAddProfileModal" @close="hideAddProfileModal">
+                <template v-slot:body>
+                    <form @submit.prevent="submitForm">
+                        <div v-for="(input, index) in formInputs" :key="index">
+                            <system-input
+                                :input-id="input.id"
+                                :label="input.label"
+                                :type="input.type"
+                                :rules="input.rules"
+                                :error="input.error"
+                                :dirty="input.dirty"
+                                v-model="input.value"
+                                @error="handleError(input, $event)"
+                                @dirty="handleDirty(input, $event)"/>
+                        </div>
+                        <button type="submit" style="display: none">Submit</button>
+                    </form>
+                </template>
                 <template v-slot:header>
                     <h3> Add Profile </h3>
                 </template>
-                <template v-slot:body>
-                    <div class="modal-body-input">
-                        <span>Name:</span>
-                        <input v-model="newDoctor.name">
-                    </div>
-                    <div class="modal-body-input">
-                        <span>Email:</span>
-                        <input v-model="newDoctor.email" class="modal-body-input" type="email">
-                    </div>
-                    <div class="modal-body-input">
-                        <span>Description:</span>
-                        <input v-model="newDoctor.description" class="modal-body-input">
-                    </div>
-                </template>
                 <template v-slot:footer>
                     <button
-                            :disabled="!newDoctor && !newDoctor.email && !newDoctor.description && !newDoctor.name"
-                            :class="newDoctor && newDoctor.email && newDoctor.description && newDoctor.name ? '':'disabled'"
-                            class="modal-add-button"
-                            @click="addNewDoctorProfile"
+                        type="button"
+                        :disabled="!formIsValid"
+                        :class="formIsValid ? '':'disabled'"
+                        class="modal-add-button"
+                        @click="submitForm"
                     >
                         Add
                     </button>
                 </template>
-            </Modal>
+            </system-modal>
         </div>
     </div>
 </template>
 
 <script>
 import ProfileCard from "./components/ProfileCard"
-import Modal from "./components/Modal"
+import SystemModal from "./components/SystemModal"
+import SystemInput from "./components/SystemInput"
 
 export default {
     name: "App",
 
     components: {
         ProfileCard,
-        Modal
+        SystemModal,
+        SystemInput
     },
-
     data() {
         return {
+            // if you use DefaultFormMixin the name of inputs must be: formInputs
+            formInputs: {
+                name:{
+                    id: "name",
+                    label: "Name",
+                    value: "",
+                    type: "text",
+                    rules: [this.$va.required, this.$va.englishAlphabet],
+                    error: "",
+                    dirty: false,
+                },
+                description:{
+                    id: "description",
+                    label: "Description",
+                    value: "",
+                    type: "text",
+                    rules: [this.$va.required, this.$va.englishAlphabetWithNumberAndSigns],
+                    error: "",
+                    dirty: false,
+                },
+                email:{
+                    id: "email",
+                    label: "Email",
+                    value: "",
+                    type: "email",
+                    rules: [this.$va.required, this.$va.email],
+                    error: "",
+                    dirty: false,
+                },
+            },
             profiles: [
                 {
                     id: 1,
@@ -91,12 +126,6 @@ export default {
             ],
             searchedName: "",
             showAddProfileModal: false,
-            newDoctor: {
-                name: null,
-                email: null,
-                description: null,
-                likes: 0
-            }
         };
     },
     computed: {
@@ -107,6 +136,12 @@ export default {
             return this.profiles.filter(item => {
                 return item.name.toLowerCase().indexOf(this.searchedName.toLowerCase()) !== -1
             })
+        },
+        formIsValid() {
+            // check if every input has an empty error property
+
+            // return this.formInputs.every(input => !input.error);
+            return Object.values(this.formInputs).every(input => !input.error);
         }
     },
     methods: {
@@ -127,21 +162,45 @@ export default {
         },
         hideAddProfileModal() {
             this.showAddProfileModal = false
+            this.resetForm()
         },
-        addNewDoctorProfile() {
+        // if you use DefaultFormMixin the name of this method must be  addNewDoctorProfile
+         addNewDoctorProfile() {
             this.profiles.push({
                 id: this.profiles.length + 1,
-                name: this.newDoctor.name,
-                likes: this.newDoctor.likes,
-                description: this.newDoctor.description,
-                email: this.newDoctor.email
+                name: this.formInputs.name.value,
+                likes: 0,
+                description: this.formInputs.description.value,
+                email: this.formInputs.email.value
             })
-            this.newDoctor.name = ''
-            this.newDoctor.description = ''
-            this.newDoctor.email = ''
+            this.resetForm();
             this.showAddProfileModal = false
-        }
-    }
+        },
+        handleError(input, error) {
+            input.error = error; // update the input error based on the event payload
+        },
+        handleDirty(input, dirty) {
+            input.dirty = dirty; // update the input dirty state based on the event payload
+        },
+        submitForm() {
+            if (this.formIsValid) {
+                this. addNewDoctorProfile();
+            }
+            else{
+                // making all fields dirty to show the errors if the form is submitted and is not valid
+                for (let input in this.formInputs) {
+                    this.formInputs[input].dirty = true;
+                }
+            }
+        },
+        resetForm() {
+            for (let input in this.formInputs) {
+                this.formInputs[input].value = '';
+                this.formInputs[input].dirty = false;
+                this.formInputs[input].error = '';
+            }
+        },
+    },
 };
 </script>
 
@@ -150,7 +209,7 @@ export default {
 html, body {
     padding: 0;
     margin: 0;
-    width: 100vw;
+    width: 100%;
 }
 
 #app {
@@ -167,12 +226,13 @@ html, body {
     position: relative;
 
     background: linear-gradient(
-            135deg,
-            rgba(65, 184, 131, 0.9),
-            rgba(52, 73, 94, 0.9)
+        135deg,
+        rgba(65, 184, 131, 0.9),
+        rgba(52, 73, 94, 0.9)
     );
 
     font-size: 1.5em;
+    box-sizing: border-box;
 }
 
 button {
