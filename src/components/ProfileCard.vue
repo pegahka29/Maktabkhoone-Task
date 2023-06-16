@@ -8,7 +8,13 @@
                         <strong>{{ profile.name }}</strong>
                         <a :href="profile.email" class="email">{{ profile.email }}</a>
                     </div>
-                    <div class="description">{{ profile.description }}</div>
+                    <div class="description">
+                        <span v-for="(specialisation,index) in profile.specialisations" :key="index">{{
+                            specialisation
+                            }}
+                         <span v-if=" profile.specialisations.length -1 !== index ">,</span>
+                        </span>
+                    </div>
                 </div>
                 <div class="likes">
                     <span class="likes-icon">💚</span>

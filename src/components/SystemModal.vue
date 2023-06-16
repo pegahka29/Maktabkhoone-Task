@@ -4,8 +4,8 @@
             <div class="modal-wrapper">
                 <div class="modal-container">
                     <button
-                            class="modal-close-button"
-                            @click="$emit('close')"
+                        class="modal-close-button"
+                        @click="$emit('close')"
                     >❌
                     </button>
                     <div class="modal-header">
@@ -103,7 +103,16 @@ export default ({
     min-width: 280px;
     max-width: 300px;
 }
-
+.modal-body select {
+    height: 100%;
+    max-height: 100px;
+    width: 30%;
+    min-width: 280px;
+    max-width: 300px;
+}
+select.modal-body-input {
+    padding-top: 16px;
+}
 .modal-body button {
     height: 48px;
     width: 50%;

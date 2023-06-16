@@ -1,5 +1,8 @@
 export const required = (val) =>
-    (!!val) || 'This field is required';
+    (typeof val === 'string' && !!val) || // check if val is a non-empty string
+    (Array.isArray(val) && val.length > 0) || // check if val is a non-empty array
+    (typeof val === 'object' && Object.keys(val).length > 0) || // check if val is a non-empty object
+    'This field is required';
 
 export const email = val =>
     (!val || /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(val)) || 'Enter a valid email';

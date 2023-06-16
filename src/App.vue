@@ -8,10 +8,10 @@
                 <button @click="sortDesc">▼</button>
             </div>
             <ProfileCard
-                v-for="profile in filteredData"
-                :key="profile.id"
-                :profile="profile"
-                class="profile"
+                    v-for="profile in filteredData"
+                    :key="profile.id"
+                    :profile="profile"
+                    class="profile"
             />
             <div class="icons-note">
                 Icons made by
@@ -23,16 +23,31 @@
                 <template v-slot:body>
                     <form @submit.prevent="submitForm">
                         <div v-for="(input, index) in formInputs" :key="index">
+                            <system-select
+                                    v-if="input.type === 'select'"
+                                    class="mb-16"
+                                    :input-id="input.id"
+                                    :label="input.label"
+                                    :type="input.type"
+                                    :rules="input.rules"
+                                    :error="input.error"
+                                    :dirty="input.dirty"
+                                    v-model="input.value"
+                                    :options="input.options"
+                                    @error="handleError(input, $event)"
+                                    @dirty="handleDirty(input, $event)"/>
                             <system-input
-                                :input-id="input.id"
-                                :label="input.label"
-                                :type="input.type"
-                                :rules="input.rules"
-                                :error="input.error"
-                                :dirty="input.dirty"
-                                v-model="input.value"
-                                @error="handleError(input, $event)"
-                                @dirty="handleDirty(input, $event)"/>
+                                    v-else
+                                    class="mb-16"
+                                    :input-id="input.id"
+                                    :label="input.label"
+                                    :type="input.type"
+                                    :rules="input.rules"
+                                    :error="input.error"
+                                    :dirty="input.dirty"
+                                    v-model="input.value"
+                                    @error="handleError(input, $event)"
+                                    @dirty="handleDirty(input, $event)"/>
                         </div>
                         <button type="submit" style="display: none">Submit</button>
                     </form>
@@ -42,11 +57,11 @@
                 </template>
                 <template v-slot:footer>
                     <button
-                        type="button"
-                        :disabled="!formIsValid"
-                        :class="formIsValid ? '':'disabled'"
-                        class="modal-add-button"
-                        @click="submitForm"
+                            type="button"
+                            :disabled="!formIsValid"
+                            :class="formIsValid ? '':'disabled'"
+                            class="modal-add-button"
+                            @click="submitForm"
                     >
                         Add
                     </button>
@@ -60,6 +75,7 @@
 import ProfileCard from "./components/ProfileCard"
 import SystemModal from "./components/SystemModal"
 import SystemInput from "./components/SystemInput"
+import SystemSelect from "./components/SystemSelect"
 
 export default {
     name: "App",
@@ -67,13 +83,14 @@ export default {
     components: {
         ProfileCard,
         SystemModal,
-        SystemInput
+        SystemInput,
+        SystemSelect
     },
     data() {
         return {
             // if you use DefaultFormMixin the name of inputs must be: formInputs
             formInputs: {
-                name:{
+                name: {
                     id: "name",
                     label: "Name",
                     value: "",
@@ -82,16 +99,23 @@ export default {
                     error: "",
                     dirty: false,
                 },
-                description:{
-                    id: "description",
-                    label: "Description",
-                    value: "",
-                    type: "text",
-                    rules: [this.$va.required, this.$va.englishAlphabetWithNumberAndSigns],
+                specialisations: {
+                    id: "specialisations",
+                    label: "Specialisations",
+                    value: [],
+                    type: "select",
+                    rules: [this.$va.required],
                     error: "",
                     dirty: false,
+                    options: [
+                        {text: "Surgeon", value: "Surgeon"},
+                        {text: "Radiologist", value: "Radiologist"},
+                        {text: "Cardiologist", value: "Cardiologist"},
+                        {text: "Psychiatrist", value: "Psychiatrist"},
+                        {text: "Dermatologist", value: "Dermatologist"},
+                    ],
                 },
-                email:{
+                email: {
                     id: "email",
                     label: "Email",
                     value: "",
@@ -106,21 +130,21 @@ export default {
                     id: 1,
                     name: "Wojciech",
                     email: "wojciech@poz.pl",
-                    description: "Anaesthesiologist",
+                    specialisations: ["Anaesthesiologist"],
                     likes: 34
                 },
                 {
                     id: 2,
                     name: "Maria",
                     email: "maria@poz.pl",
-                    description: "Radiologist",
+                    specialisations: ["Radiologist"],
                     likes: 28
                 },
                 {
                     id: 3,
                     name: "Anna",
                     email: "anna@poz.pl",
-                    description: "Surgeon",
+                    specialisations: ["Surgeon"],
                     likes: 53
                 }
             ],
@@ -165,12 +189,19 @@ export default {
             this.resetForm()
         },
         // if you use DefaultFormMixin the name of this method must be  addNewDoctorProfile
-         addNewDoctorProfile() {
+        addNewDoctorProfile() {
+            let specialisationsTemp = []
+            if(Array.isArray(this.formInputs.specialisations.value)){
+                specialisationsTemp = this.formInputs.specialisations.value
+            }
+            else if(this.formInputs.specialisations.value){
+                specialisationsTemp.push(this.formInputs.specialisations.value)
+            }
             this.profiles.push({
                 id: this.profiles.length + 1,
                 name: this.formInputs.name.value,
                 likes: 0,
-                description: this.formInputs.description.value,
+                specialisations: specialisationsTemp,
                 email: this.formInputs.email.value
             })
             this.resetForm();
@@ -184,9 +215,8 @@ export default {
         },
         submitForm() {
             if (this.formIsValid) {
-                this. addNewDoctorProfile();
-            }
-            else{
+                this.addNewDoctorProfile();
+            } else {
                 // making all fields dirty to show the errors if the form is submitted and is not valid
                 for (let input in this.formInputs) {
                     this.formInputs[input].dirty = true;
@@ -226,9 +256,9 @@ html, body {
     position: relative;
 
     background: linear-gradient(
-        135deg,
-        rgba(65, 184, 131, 0.9),
-        rgba(52, 73, 94, 0.9)
+            135deg,
+            rgba(65, 184, 131, 0.9),
+            rgba(52, 73, 94, 0.9)
     );
 
     font-size: 1.5em;
@@ -293,14 +323,6 @@ button {
     width: 100%;
 }
 
-.modal-body-input {
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
 .modal-add-button {
     height: 48px;
     width: 30%;
@@ -314,7 +336,12 @@ button {
 .show-modal__button {
     margin-top: 1rem;
 }
+
 .disabled {
     background: darkgray !important;
+}
+
+.mb-16 {
+    margin-bottom: 16px;
 }
 </style>

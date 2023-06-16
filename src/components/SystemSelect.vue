@@ -1,51 +1,56 @@
 <template>
     <div class="modal-body">
-        <label :for="inputId">{{ label }}:</label>
-        <input
-            :id="inputId"
-            v-model="innerValue"
-            :type="type"
-        />
+        <label :for="selectId">{{ label }}:</label>
+        <select
+                :id="selectId"
+                v-model="innerValue"
+                :multiple="multiple"
+        >
+            <option v-for="option in options" :value="option.value" :key="option.value">{{ option.text }}</option>
+        </select>
         <span class="error" v-if="dirty && error">{{ error }}</span>
     </div>
 </template>
 
 <script>
-
 export default ({
-    name: "SystemInput",
+    name: "SystemSelect",
     props: {
         label: {
             type: String
         },
-        inputId: {
+        selectId: {
             type: String
-        },
-        type:{
-            type: String,
-            default: 'text'
         },
         rules: {
             type: Array,
         },
-        error:{
+        error: {
             type: String,
         },
-        dirty:{
+        dirty: {
             type: Boolean,
+        },
+        multiple: {
+            type: Boolean,
+            default: true,
         },
         value: {
             type: null
+        },
+        options: {
+            type: Array,
+            default: () => []
         }
     },
     data() {
         return {
-            innerValue: ""
+            innerValue: this.multiple ? [] : "",
         }
     },
     methods: {
-        validateInput(value) {
-            let tempError ="";
+        validateSelect(value) {
+            let tempError = "";
             for (let rule of this.rules) {
                 let result = rule(value);
                 if (result !== true) {
@@ -61,7 +66,7 @@ export default ({
         innerValue(newVal) {
             this.$emit("dirty", true);
             this.$emit("input", newVal);
-            this.validateInput(newVal);
+            this.validateSelect(newVal);
         },
         // Handles external model changes.
         value(newVal) {
@@ -69,12 +74,14 @@ export default ({
         }
     },
     created() {
-        if (this.value) {
+        // init the innerValue with the parent value
+        // if it is not multiple and has value or if is multiple and has elements in it
+        if (this.value && (this.multiple === false || this.value.length > 0)) {
             this.innerValue = this.value;
         }
     },
     mounted() {
-        this.validateInput(this.value);
+        this.validateSelect(this.value);
     },
 })
 </script>
@@ -85,5 +92,4 @@ export default ({
     font-size: medium;
     margin-top: 2px;
 }
-
 </style>
