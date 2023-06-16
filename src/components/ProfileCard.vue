@@ -12,13 +12,21 @@
                         <span v-for="(specialisation,index) in profile.specialisations" :key="index">{{
                             specialisation
                             }}
-                         <span v-if=" profile.specialisations.length -1 !== index ">,</span>
+                         <span v-if="profile.specialisations.length -1 !== index ">,</span>
                         </span>
                     </div>
                 </div>
-                <div class="likes">
-                    <span class="likes-icon">💚</span>
-                    <span class="likes-value">{{ profile.likes }}</span>
+                <div class="reactions-button">
+                    <div class="likes" @click="$emit('updateLikes')">
+                        <span v-if="profile.hasLiked" class="likes-icon">💚</span>
+                        <span v-else class="likes-icon">🤍</span>
+                        <span class="likes-value"
+                              :class="profile.likes < 0 ? 'text-negative' : 'text-positive'">{{ profile.likes }}</span>
+                    </div>
+                    <div class="likes" @click="$emit('updateDislikes')">
+                        <span v-if="profile.hasDisliked" class="likes-icon">👎🏾</span>
+                        <span v-else class="likes-icon">👎🏻</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -95,13 +103,21 @@ export default {
 }
 
 .likes {
-    color: rgb(76, 202, 114);
     margin-top: 10px;
     margin-left: 15px;
+    cursor: pointer;
 }
 
 .likes-value {
     margin-left: 5px;
+}
+
+.text-positive {
+    color: rgb(76, 202, 114);
+}
+
+.text-negative {
+    color: red;
 }
 
 .comment {
@@ -111,5 +127,11 @@ export default {
 
 .comment-input {
     width: 100%;
+}
+
+.reactions-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 </style>

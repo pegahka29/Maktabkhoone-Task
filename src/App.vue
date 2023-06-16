@@ -8,9 +8,11 @@
                 <button @click="sortDesc">▼</button>
             </div>
             <ProfileCard
-                    v-for="profile in filteredData"
+                    v-for="(profile,index) in filteredData"
                     :key="profile.id"
                     :profile="profile"
+                    @updateLikes="handleLike(index)"
+                    @updateDislikes="handleDislike(index)"
                     class="profile"
             />
             <div class="icons-note">
@@ -79,7 +81,6 @@ import SystemSelect from "./components/SystemSelect"
 
 export default {
     name: "App",
-
     components: {
         ProfileCard,
         SystemModal,
@@ -131,21 +132,27 @@ export default {
                     name: "Wojciech",
                     email: "wojciech@poz.pl",
                     specialisations: ["Anaesthesiologist"],
-                    likes: 34
+                    likes: 34,
+                    hasLiked: false,
+                    hasDisliked: false
                 },
                 {
                     id: 2,
                     name: "Maria",
                     email: "maria@poz.pl",
                     specialisations: ["Radiologist"],
-                    likes: 28
+                    likes: 28,
+                    hasLiked: false,
+                    hasDisliked: false
                 },
                 {
                     id: 3,
                     name: "Anna",
                     email: "anna@poz.pl",
                     specialisations: ["Surgeon"],
-                    likes: 53
+                    likes: 53,
+                    hasLiked: false,
+                    hasDisliked: false
                 }
             ],
             searchedName: "",
@@ -191,10 +198,9 @@ export default {
         // if you use DefaultFormMixin the name of this method must be  addNewDoctorProfile
         addNewDoctorProfile() {
             let specialisationsTemp = []
-            if(Array.isArray(this.formInputs.specialisations.value)){
+            if (Array.isArray(this.formInputs.specialisations.value)) {
                 specialisationsTemp = this.formInputs.specialisations.value
-            }
-            else if(this.formInputs.specialisations.value){
+            } else if (this.formInputs.specialisations.value) {
                 specialisationsTemp.push(this.formInputs.specialisations.value)
             }
             this.profiles.push({
@@ -202,7 +208,9 @@ export default {
                 name: this.formInputs.name.value,
                 likes: 0,
                 specialisations: specialisationsTemp,
-                email: this.formInputs.email.value
+                email: this.formInputs.email.value,
+                hasLiked: false,
+                hasDisliked: false
             })
             this.resetForm();
             this.showAddProfileModal = false
@@ -230,6 +238,34 @@ export default {
                 this.formInputs[input].error = '';
             }
         },
+        handleLike(id) {
+            if (this.profiles[id].hasLiked) {
+                //undo like
+                this.profiles[id].likes -= 1
+                this.profiles[id].hasLiked = false
+            } else {
+                this.profiles[id].likes += 1
+                this.profiles[id].hasLiked = true
+                if (this.profiles[id].hasDisliked) {
+                    this.profiles[id].likes += 1
+                    this.profiles[id].hasDisliked = false
+                }
+            }
+        },
+        handleDislike(id) {
+            if (this.profiles[id].hasDisliked) {
+                //undo dislike
+                this.profiles[id].likes += 1
+                this.profiles[id].hasDisliked = false
+            } else {
+                this.profiles[id].likes -= 1
+                this.profiles[id].hasDisliked = true
+                if (this.profiles[id].hasLiked) {
+                    this.profiles[id].likes -= 1
+                    this.profiles[id].hasLiked = false
+                }
+            }
+        }
     },
 };
 </script>
